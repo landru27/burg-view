@@ -3,7 +3,11 @@ import * as $ from 'jquery';
 import * as CanvasJS from './canvasjs.min';
 import { WebsocketService } from './websocket.service';
 import { StatsService } from './stats.service';
- 
+
+var dataPointsWheat = [];
+var dataPointsFlour = [];
+var dataPointsBread = [];
+
 @Component({
 	selector: 'app-root',
 	templateUrl: './app.component.html',
@@ -16,49 +20,48 @@ export class AppComponent implements OnInit {
 	constructor(private statsService: StatsService) {
 		statsService.messages.subscribe(msg => {
 			console.log("Response from websocket: " + JSON.stringify(msg));
+
+			dataPointsWheat.push({x: dataPointsWheat.length, y: msg.wheat});
+			dataPointsFlour.push({x: dataPointsFlour.length, y: msg.flour});
+			dataPointsBread.push({x: dataPointsBread.length, y: msg.bread});
 		});
 	}
 
 	ngOnInit() {
-	let dataPoints = [];
-	let dpsLength = 0;
-	let chart = new CanvasJS.Chart("chartContainer",{
-		exportEnabled: true,
-		title:{
-			text:"Live Chart with Data-Points from External JSON"
-		},
-		data: [{
-			type: "spline",
-			dataPoints : dataPoints,
-		}]
-	});
-	
-	$.getJSON("https://canvasjs.com/services/data/datapoints.php?xstart=1&ystart=25&length=20&type=json&callback=?", function(data) {
-		$.each(data, function(key, value){
-			dataPoints.push({x: value[0], y: parseInt(value[1])});
+		let chart = new CanvasJS.Chart("chartContainer",{
+			exportEnabled: true,
+			title:{
+				text:"Live Chart with Data-Points from External JSON"
+			},
+			data: [{
+				type: "spline",
+				dataPoints : dataPointsWheat
+			},
+			{
+				type: "spline",
+				dataPoints : dataPointsFlour
+			},
+			{
+				type: "spline",
+				dataPoints : dataPointsBread
+			}]
 		});
-		dpsLength = dataPoints.length;
+
+		dataPointsWheat.push({x: 0, y: 0});
+		dataPointsFlour.push({x: 0, y: 0});
+		dataPointsBread.push({x: 0, y: 0});
+
 		chart.render();
 		updateChart();
-	});
 
-	function updateChart() {
-	$.getJSON("https://canvasjs.com/services/data/datapoints.php?xstart=" + (dpsLength + 1) + "&ystart=" + (dataPoints[dataPoints.length - 1].y) + "&length=1&type=json&callback=?", function(data) {
-		$.each(data, function(key, value) {
-			dataPoints.push({
-			x: parseInt(value[0]),
-			y: parseInt(value[1])
-			});
-			dpsLength++;
-		});
-		
-		if (dataPoints.length >  20 ) {
-      		dataPoints.shift();				
-      	}
-		chart.render();
-		setTimeout(function(){updateChart()}, 1000);
-	});
-    }
-}
+		function updateChart() {
 
+			//if (dataPoints.length >  20 ) {
+			//	dataPoints.shift();
+			//}
+
+			chart.render();
+			setTimeout(function(){updateChart()}, 1000);
+		}
+	}
 }
