@@ -1,14 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import * as $ from 'jquery';
 import * as CanvasJS from './canvasjs.min';
+import { WebsocketService } from './websocket.service';
+import { StatsService } from './stats.service';
  
 @Component({
 	selector: 'app-root',
 	templateUrl: './app.component.html',
-	styleUrls: ['./app.component.css']
+	styleUrls: ['./app.component.css'],
+	providers: [WebsocketService, StatsService]
 })
 export class AppComponent implements OnInit {
 	title = 'burg-view';
+
+	constructor(private statsService: StatsService) {
+		statsService.messages.subscribe(msg => {
+			console.log("Response from websocket: " + msg);
+		});
+	}
 
 	ngOnInit() {
 	let dataPoints = [];
