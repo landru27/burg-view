@@ -15,7 +15,7 @@ export class AppComponent implements OnInit {
 
 	constructor(private statsService: StatsService) {
 		statsService.messages.subscribe(msg => {
-			console.log("Response from websocket: " + msg);
+			console.log("Response from websocket: " + JSON.stringify(msg));
 		});
 	}
 
